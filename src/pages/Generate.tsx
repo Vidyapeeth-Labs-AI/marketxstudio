@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import CategorySelect from "@/components/generate/CategorySelect";
 import ModelSelect from "@/components/generate/ModelSelect";
@@ -16,6 +16,9 @@ const Generate = () => {
   const [selectedModel, setSelectedModel] = useState("");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [credits, setCredits] = useState(0);
+  const [generating, setGenerating] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [modelTypes, setModelTypes] = useState<any[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -23,6 +26,7 @@ const Generate = () => {
         navigate("/auth");
       } else {
         fetchCredits();
+        fetchData();
       }
     });
   }, [navigate]);
@@ -38,6 +42,19 @@ const Generate = () => {
     }
   };
 
+  const fetchData = async () => {
+    const { data: categoriesData } = await supabase
+      .from("business_categories")
+      .select("id, name");
+    
+    const { data: modelsData } = await supabase
+      .from("model_types")
+      .select("id, name");
+
+    if (categoriesData) setCategories(categoriesData);
+    if (modelsData) setModelTypes(modelsData);
+  };
+
   const handleGenerate = async () => {
     if (!selectedCategory || !selectedModel || !uploadedImage) {
       toast.error("Please complete all steps");
@@ -49,16 +66,72 @@ const Generate = () => {
       return;
     }
 
-    // Implementation will be in edge function
-    toast.success("Generation started!");
-    navigate("/dashboard");
+    setGenerating(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Not authenticated");
+        return;
+      }
+
+      // Upload product image to storage
+      const fileName = `${user.id}/${Date.now()}-${uploadedImage.name}`;
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, uploadedImage);
+
+      if (uploadError) {
+        throw new Error('Failed to upload product image');
+      }
+
+      // Get public URL for the uploaded image
+      const { data: urlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+
+      // Get category and model names
+      const category = categories.find(c => c.id === selectedCategory);
+      const model = modelTypes.find(m => m.id === selectedModel);
+
+      console.log('Calling edge function with:', {
+        categoryName: category?.name,
+        modelTypeName: model?.name
+      });
+
+      // Call edge function
+      const { data, error } = await supabase.functions.invoke('generate-marketing-image', {
+        body: {
+          productImageUrl: urlData.publicUrl,
+          categoryName: category?.name,
+          modelTypeName: model?.name
+        }
+      });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Generation failed');
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success("Image generated successfully!");
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error('Generation error:', error);
+      toast.error(error.message || "Failed to generate image");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" onClick={() => navigate("/dashboard")} disabled={generating}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Button>
@@ -70,6 +143,13 @@ const Generate = () => {
           <h1 className="text-4xl font-bold mb-2">Generate Marketing Images</h1>
           <p className="text-muted-foreground">Follow the steps below to create stunning marketing visuals</p>
         </div>
+
+        {generating && (
+          <div className="mb-6 p-4 bg-primary/10 rounded-lg flex items-center justify-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            <span className="text-primary font-medium">Generating your marketing image...</span>
+          </div>
+        )}
 
         <div className="space-y-6">
           <Card className="shadow-card">
@@ -111,11 +191,31 @@ const Generate = () => {
             </CardContent>
           </Card>
 
-          <GenerateButton 
-            onClick={handleGenerate}
-            disabled={!selectedCategory || !selectedModel || !uploadedImage || credits <= 0}
-            credits={credits}
-          />
+          <div className="flex flex-col items-center gap-4 pt-4">
+            <Button
+              onClick={handleGenerate}
+              disabled={!selectedCategory || !selectedModel || !uploadedImage || credits <= 0 || generating}
+              size="lg"
+              className="w-full sm:w-auto px-8"
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  Generate Image (1 Credit)
+                </>
+              )}
+            </Button>
+            {credits <= 0 && (
+              <p className="text-sm text-destructive">
+                You don't have enough credits. Please contact support to get more.
+              </p>
+            )}
+          </div>
         </div>
       </main>
     </div>

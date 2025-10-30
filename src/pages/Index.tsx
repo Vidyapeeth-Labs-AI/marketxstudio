@@ -12,11 +12,11 @@ const Index = () => {
           <div className="flex items-center justify-center gap-2 mb-4">
             <Sparkles className="h-12 w-12 text-primary-foreground animate-pulse" />
             <h1 className="text-5xl md:text-6xl font-bold text-primary-foreground">
-              AI Marketing Studio
+              MarketX
             </h1>
           </div>
           <p className="text-xl md:text-2xl text-primary-foreground/90 mb-8">
-            Transform your products into stunning marketing visuals with AI
+            Your own AI Marketing Studio
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Button size="lg" onClick={() => navigate("/auth")} className="shadow-glow">

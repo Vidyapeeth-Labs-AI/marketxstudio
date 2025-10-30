@@ -1,1 +1,4 @@
 project_id = "ffeshblxltuhnkiscvcn"
+
+[functions.generate-marketing-image]
+verify_jwt = true

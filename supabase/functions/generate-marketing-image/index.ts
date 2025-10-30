@@ -22,21 +22,73 @@ serve(async (req) => {
       }
     );
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) {
-      throw new Error('Not authenticated');
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    let userId = '';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1] || ''));
+      userId = payload.sub || '';
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const { productImageUrl, categoryName, modelTypeName } = await req.json();
 
-    console.log('Generating image for user:', user.id);
+    // Ensure the AI gateway can access the product image by converting it to a base64 data URL
+    let inputImageUrl = productImageUrl;
+    try {
+      const parsed = new URL(productImageUrl);
+      const segments = parsed.pathname.split('/');
+      const publicIdx = segments.findIndex((s) => s === 'public');
+      if (publicIdx > -1 && segments[publicIdx + 1] && segments[publicIdx + 2]) {
+        const bucket = segments[publicIdx + 1];
+        const filePath = segments.slice(publicIdx + 2).join('/');
+        // Use service role key to download private file safely
+        const adminClient = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        );
+        const { data: blob, error: dlErr } = await adminClient.storage
+          .from(bucket)
+          .download(filePath);
+        if (!dlErr && blob) {
+          const ab = await blob.arrayBuffer();
+          const u8 = new Uint8Array(ab);
+          let binary = '';
+          for (let i = 0; i < u8.length; i++) binary += String.fromCharCode(u8[i]);
+          const base64 = btoa(binary);
+          inputImageUrl = `data:image/png;base64,${base64}`;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not convert product image to base64, using provided URL');
+    }
+
+    console.log('Generating image for user:', userId);
     console.log('Category:', categoryName, 'Model:', modelTypeName);
 
     // Check and deduct credits
     const { data: creditsData, error: creditsError } = await supabaseClient
       .from('user_credits')
       .select('credits')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     if (creditsError) {
@@ -84,9 +136,9 @@ serve(async (req) => {
               {
                 type: 'image_url',
                 image_url: {
-                  url: productImageUrl
-                }
-              }
+                  url: inputImageUrl
+                 }
+               }
             ]
           }
         ],
@@ -113,7 +165,7 @@ serve(async (req) => {
     const base64Data = generatedImageUrl.split(',')[1];
     const imageBlob = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
     
-    const fileName = `${user.id}/${Date.now()}-generated.png`;
+    const fileName = `${userId}/${Date.now()}-generated.png`;
     
     const { error: uploadError } = await supabaseClient.storage
       .from('generated-images')
@@ -127,10 +179,15 @@ serve(async (req) => {
       throw new Error('Failed to upload generated image');
     }
 
-    // Get public URL
-    const { data: urlData } = supabaseClient.storage
+    // Create a signed URL so the image can be viewed in the app
+    const { data: signed, error: signedErr } = await supabaseClient.storage
       .from('generated-images')
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 60 * 60 * 24 * 7); // 7 days
+
+    if (signedErr) {
+      console.error('Signed URL error:', signedErr);
+      throw new Error('Failed to create signed URL');
+    }
 
     console.log('Image uploaded to storage:', fileName);
 
@@ -151,11 +208,11 @@ serve(async (req) => {
     const { error: insertError } = await supabaseClient
       .from('generated_images')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         business_category_id: categoryData?.id,
         model_type_id: modelData?.id,
         original_image_url: productImageUrl,
-        generated_image_url: urlData.publicUrl
+        generated_image_url: signed.signedUrl
       });
 
     if (insertError) {
@@ -167,7 +224,7 @@ serve(async (req) => {
     const { error: updateError } = await supabaseClient
       .from('user_credits')
       .update({ credits: creditsData.credits - 1 })
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
     if (updateError) {
       console.error('Credits update error:', updateError);
@@ -178,7 +235,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        imageUrl: urlData.publicUrl,
+        imageUrl: signed.signedUrl,
         creditsRemaining: creditsData.credits - 1
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

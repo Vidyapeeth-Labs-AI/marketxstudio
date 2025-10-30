@@ -126,7 +126,12 @@ const Generate = () => {
         throw new Error(data.error);
       }
 
-      toast.success("Image generated successfully!");
+      // Update credits display
+      if (data.creditsRemaining !== undefined) {
+        setCredits(data.creditsRemaining);
+      }
+
+      toast.success(`Image generated successfully! ${data.creditsRemaining} credits remaining`);
       navigate("/dashboard");
     } catch (error: any) {
       console.error('Generation error:', error);

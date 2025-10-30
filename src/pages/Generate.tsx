@@ -99,8 +99,17 @@ const Generate = () => {
         modelTypeName: model?.name
       });
 
-      // Call edge function
+      // Get the session to pass auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      // Call edge function with explicit auth header
       const { data, error } = await supabase.functions.invoke('generate-marketing-image', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        },
         body: {
           productImageUrl: urlData.publicUrl,
           categoryName: category?.name,

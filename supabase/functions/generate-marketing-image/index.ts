@@ -84,10 +84,10 @@ serve(async (req) => {
     console.log('Generating image for user:', userId);
     console.log('Category:', categoryName, 'Model:', modelTypeName);
 
-    // Check and deduct credits
+    // Check credits and daily limit
     const { data: creditsData, error: creditsError } = await supabaseClient
       .from('user_credits')
-      .select('credits')
+      .select('credits, daily_generations, last_generation_date')
       .eq('user_id', userId)
       .single();
 
@@ -98,6 +98,23 @@ serve(async (req) => {
     if (creditsData.credits < 1) {
       return new Response(
         JSON.stringify({ error: 'Insufficient credits' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check daily limit (10 images per day)
+    const today = new Date().toISOString().split('T')[0];
+    const lastGenDate = creditsData.last_generation_date;
+    let dailyCount = creditsData.daily_generations || 0;
+
+    // Reset counter if it's a new day
+    if (lastGenDate !== today) {
+      dailyCount = 0;
+    }
+
+    if (dailyCount >= 10) {
+      return new Response(
+        JSON.stringify({ error: 'Daily limit reached. You can generate up to 10 images per day.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -220,10 +237,14 @@ serve(async (req) => {
       throw new Error('Failed to save image record');
     }
 
-    // Deduct credit
+    // Deduct credit and increment daily counter
     const { error: updateError } = await supabaseClient
       .from('user_credits')
-      .update({ credits: creditsData.credits - 1 })
+      .update({ 
+        credits: creditsData.credits - 1,
+        daily_generations: dailyCount + 1,
+        last_generation_date: today
+      })
       .eq('user_id', userId);
 
     if (updateError) {

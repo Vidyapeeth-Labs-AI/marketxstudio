@@ -4,9 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, LogOut, Sparkles, Image as ImageIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, LogOut, Sparkles, Image as ImageIcon, MessageSquare, Video } from "lucide-react";
 import { toast } from "sonner";
 import ImageGallery from "@/components/ImageGallery";
+import CaptionsGallery from "@/components/CaptionsGallery";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -87,31 +89,105 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="grid gap-6 mb-8">
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-primary" />
-                Generate Marketing Images
-              </CardTitle>
-              <CardDescription>
-                Transform your product photos into professional marketing images with AI
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                onClick={() => navigate("/generate")}
-                className="w-full sm:w-auto"
-                size="lg"
-              >
-                <Sparkles className="mr-2 h-5 w-5" />
-                Start Generating
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <div className="space-y-8">
+          {/* Feature Cards */}
+          <div>
+            <h2 className="text-2xl font-bold mb-4">AI Marketing Tools</h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card className="shadow-card hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5 text-primary" />
+                    Generate Images
+                  </CardTitle>
+                  <CardDescription>
+                    Transform product photos into professional marketing images
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={() => navigate("/generate")}
+                    className="w-full"
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Start Generating
+                  </Button>
+                </CardContent>
+              </Card>
 
-        <ImageGallery onCreditsUpdate={fetchCredits} />
+              <Card className="shadow-card hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-primary" />
+                    Social Media Captions
+                  </CardTitle>
+                  <CardDescription>
+                    Generate engaging captions and hashtags for your images
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={() => navigate("/generate-captions")}
+                    className="w-full"
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Create Captions
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-card hover:shadow-lg transition-shadow opacity-60">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Video className="h-5 w-5 text-primary" />
+                    Marketing Videos
+                  </CardTitle>
+                  <CardDescription>
+                    Create stunning marketing videos (Coming Soon)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full"
+                    disabled
+                  >
+                    Coming Soon
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Your Creations Section */}
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Your Creations</h2>
+            <Tabs defaultValue="images" className="w-full">
+              <TabsList className="grid w-full md:w-auto grid-cols-3">
+                <TabsTrigger value="images">Images</TabsTrigger>
+                <TabsTrigger value="captions">Captions</TabsTrigger>
+                <TabsTrigger value="videos">Videos</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="images" className="mt-6">
+                <ImageGallery onCreditsUpdate={fetchCredits} />
+              </TabsContent>
+              
+              <TabsContent value="captions" className="mt-6">
+                <CaptionsGallery />
+              </TabsContent>
+              
+              <TabsContent value="videos" className="mt-6">
+                <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                  <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">Video generation coming soon!</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    We're working on bringing you amazing AI-powered video creation tools.
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </main>
     </div>
   );

@@ -123,6 +123,44 @@ export type Database = {
         }
         Relationships: []
       }
+      social_media_captions: {
+        Row: {
+          caption: string
+          created_at: string
+          hashtags: string
+          id: string
+          image_ids: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          caption: string
+          created_at?: string
+          hashtags: string
+          id?: string
+          image_ids: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          hashtags?: string
+          id?: string
+          image_ids?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_media_captions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_credits: {
         Row: {
           created_at: string

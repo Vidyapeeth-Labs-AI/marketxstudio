@@ -38,7 +38,7 @@ export type Database = {
           created_at: string
           generated_image_url: string
           id: string
-          model_type_id: string
+          model_type_id: string | null
           original_image_url: string
           user_id: string
         }
@@ -47,7 +47,7 @@ export type Database = {
           created_at?: string
           generated_image_url: string
           id?: string
-          model_type_id: string
+          model_type_id?: string | null
           original_image_url: string
           user_id: string
         }
@@ -56,7 +56,7 @@ export type Database = {
           created_at?: string
           generated_image_url?: string
           id?: string
-          model_type_id?: string
+          model_type_id?: string | null
           original_image_url?: string
           user_id?: string
         }

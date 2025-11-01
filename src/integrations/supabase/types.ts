@@ -130,6 +130,7 @@ export type Database = {
           hashtags: string
           id: string
           image_ids: Json
+          image_url: string | null
           updated_at: string
           user_id: string
         }
@@ -139,6 +140,7 @@ export type Database = {
           hashtags: string
           id?: string
           image_ids: Json
+          image_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -148,6 +150,7 @@ export type Database = {
           hashtags?: string
           id?: string
           image_ids?: Json
+          image_url?: string | null
           updated_at?: string
           user_id?: string
         }

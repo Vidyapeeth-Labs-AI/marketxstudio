@@ -49,7 +49,9 @@ serve(async (req) => {
       );
     }
 
-    const { productImageUrl, categoryName, modelTypeName } = await req.json();
+  const { productImageUrl, categoryName, modelTypeName } = await req.json();
+  
+  console.log('Received request:', { categoryName, hasModelType: !!modelTypeName });
 
     // Ensure the AI gateway can access the product image by converting it to a base64 data URL
     let inputImageUrl = productImageUrl;
@@ -120,11 +122,18 @@ serve(async (req) => {
     }
 
     // Generate AI prompt based on category and model type
-    const prompt = `Create a professional marketing image for a ${categoryName} product. 
-    The image should feature a ${modelTypeName.toLowerCase()} model showcasing the product in an elegant, 
-    high-quality commercial photography style. The composition should be well-lit with professional lighting, 
-    clean background, and focus on making the product look premium and desirable. 
-    Style: commercial photography, professional, high-end marketing material.`;
+    const prompt = modelTypeName 
+      ? `Create a professional marketing image for a ${categoryName} product. 
+      The image should feature a ${modelTypeName.toLowerCase()} model showcasing the product in an elegant, 
+      high-quality commercial photography style. The composition should be well-lit with professional lighting, 
+      clean background, and focus on making the product look premium and desirable. 
+      Style: commercial photography, professional, high-end marketing material.`
+      : `Create a professional marketing image for a ${categoryName} product. 
+      The image should be high-quality, eye-catching, and suitable for advertising. 
+      Include the product prominently with professional studio lighting and an attractive background that complements the product category. 
+      Style: commercial photography, professional, high-end marketing material.`;
+    
+    console.log('Using prompt for category:', categoryName, 'with model:', modelTypeName || 'none');
 
     console.log('Calling AI Gateway with prompt');
 
@@ -208,29 +217,48 @@ serve(async (req) => {
 
     console.log('Image uploaded to storage:', fileName);
 
-    // Get category and model IDs
+    // Get category ID
     const { data: categoryData } = await supabaseClient
       .from('business_categories')
       .select('id')
       .eq('name', categoryName)
       .single();
 
-    const { data: modelData } = await supabaseClient
-      .from('model_types')
-      .select('id')
-      .eq('name', modelTypeName)
-      .single();
+    if (!categoryData) {
+      throw new Error('Invalid category');
+    }
+
+    // Get model type ID only if model type is provided
+    let modelTypeId = null;
+    if (modelTypeName) {
+      const { data: modelData } = await supabaseClient
+        .from('model_types')
+        .select('id')
+        .eq('name', modelTypeName)
+        .single();
+
+      if (modelData) {
+        modelTypeId = modelData.id;
+      }
+    }
+
+    // Build the image record
+    const imageRecord: any = {
+      user_id: userId,
+      business_category_id: categoryData.id,
+      original_image_url: productImageUrl,
+      generated_image_url: signed.signedUrl
+    };
+
+    // Only add model_type_id if it exists
+    if (modelTypeId) {
+      imageRecord.model_type_id = modelTypeId;
+    }
 
     // Save to database
     const { error: insertError } = await supabaseClient
       .from('generated_images')
-      .insert({
-        user_id: userId,
-        business_category_id: categoryData?.id,
-        model_type_id: modelData?.id,
-        original_image_url: productImageUrl,
-        generated_image_url: signed.signedUrl
-      });
+      .insert(imageRecord);
 
     if (insertError) {
       console.error('Database insert error:', insertError);

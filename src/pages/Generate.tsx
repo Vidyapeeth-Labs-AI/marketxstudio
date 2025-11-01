@@ -20,6 +20,18 @@ const Generate = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [modelTypes, setModelTypes] = useState<any[]>([]);
 
+  // Categories that require model selection
+  const categoriesRequiringModel = [
+    'Fashion',
+    'Jewelry',
+    'Sportswear',
+    'Beauty & Cosmetics',
+    'Electronics (with models)'
+  ];
+
+  const selectedCategoryName = categories.find(c => c.id === selectedCategory)?.name;
+  const requiresModel = selectedCategoryName ? categoriesRequiringModel.includes(selectedCategoryName) : false;
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
@@ -56,8 +68,13 @@ const Generate = () => {
   };
 
   const handleGenerate = async () => {
-    if (!selectedCategory || !selectedModel || !uploadedImage) {
+    if (!selectedCategory || !uploadedImage) {
       toast.error("Please complete all steps");
+      return;
+    }
+
+    if (requiresModel && !selectedModel) {
+      toast.error("Please select a model type");
       return;
     }
 
@@ -92,11 +109,12 @@ const Generate = () => {
 
       // Get category and model names
       const category = categories.find(c => c.id === selectedCategory);
-      const model = modelTypes.find(m => m.id === selectedModel);
+      const model = requiresModel ? modelTypes.find(m => m.id === selectedModel) : null;
 
       console.log('Calling edge function with:', {
         categoryName: category?.name,
-        modelTypeName: model?.name
+        modelTypeName: model?.name,
+        requiresModel
       });
 
       // Get the session to pass auth token
@@ -105,16 +123,22 @@ const Generate = () => {
         throw new Error('No active session');
       }
 
+      // Build request body - only include model if required
+      const requestBody: any = {
+        productImageUrl: urlData.publicUrl,
+        categoryName: category?.name
+      };
+
+      if (requiresModel && model) {
+        requestBody.modelTypeName = model.name;
+      }
+
       // Call edge function with explicit auth header
       const { data, error } = await supabase.functions.invoke('generate-marketing-image', {
         headers: {
           Authorization: `Bearer ${session.access_token}`
         },
-        body: {
-          productImageUrl: urlData.publicUrl,
-          categoryName: category?.name,
-          modelTypeName: model?.name
-        }
+        body: requestBody
       });
 
       if (error) {
@@ -192,23 +216,25 @@ const Generate = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">3</span>
-                Choose Model Type
-              </CardTitle>
-              <CardDescription>Select the type of model for your marketing image</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ModelSelect value={selectedModel} onChange={setSelectedModel} />
-            </CardContent>
-          </Card>
+          {requiresModel && (
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">3</span>
+                  Choose Model Type
+                </CardTitle>
+                <CardDescription>Select the type of model for your marketing image</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ModelSelect value={selectedModel} onChange={setSelectedModel} />
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex flex-col items-center gap-4 pt-4">
             <Button
               onClick={handleGenerate}
-              disabled={!selectedCategory || !selectedModel || !uploadedImage || credits <= 0 || generating}
+              disabled={!selectedCategory || !uploadedImage || (requiresModel && !selectedModel) || credits <= 0 || generating}
               size="lg"
               className="w-full sm:w-auto px-8"
             >

@@ -54,13 +54,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Company Logos */}
-      <section className="container mx-auto px-4 py-12 border-t border-b">
-        <div className="text-center mb-4 text-sm text-muted-foreground uppercase tracking-wider">
-          Trusted by Leading Companies
-        </div>
-      </section>
-
       {/* What We Do Section */}
       <section id="services" className="container mx-auto px-4 py-20">
         <div className="mb-4">

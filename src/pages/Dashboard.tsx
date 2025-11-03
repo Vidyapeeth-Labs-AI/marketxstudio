@@ -68,19 +68,19 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-background sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">AI Marketing Studio</h1>
+            <h1 className="text-xl font-bold">MarketX Studio</h1>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg">
+            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
               <Sparkles className="h-4 w-4 text-primary" />
               <span className="font-semibold">{credits} Credits</span>
             </div>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="rounded-full">
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
@@ -89,25 +89,25 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="space-y-8">
+        <div className="space-y-12">
           {/* Feature Cards */}
           <div>
-            <h2 className="text-2xl font-bold mb-4">AI Marketing Tools</h2>
+            <h2 className="text-3xl font-bold mb-6">AI Marketing Tools</h2>
             <div className="grid gap-6 md:grid-cols-3">
-              <Card className="shadow-card hover:shadow-lg transition-shadow">
+              <Card className="shadow-card hover:shadow-xl transition-shadow border-0 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ImageIcon className="h-5 w-5 text-primary" />
-                    Generate Images
-                  </CardTitle>
-                  <CardDescription>
+                  <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                    <ImageIcon className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">Generate Images</CardTitle>
+                  <CardDescription className="text-base">
                     Transform product photos into professional marketing images
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
                     onClick={() => navigate("/generate")}
-                    className="w-full"
+                    className="w-full rounded-full"
                   >
                     <Sparkles className="mr-2 h-4 w-4" />
                     Start Generating
@@ -115,20 +115,20 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-card hover:shadow-lg transition-shadow">
+              <Card className="shadow-card hover:shadow-xl transition-shadow border-0 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-primary" />
-                    Social Media Captions
-                  </CardTitle>
-                  <CardDescription>
+                  <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                    <MessageSquare className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">Social Media Captions</CardTitle>
+                  <CardDescription className="text-base">
                     Generate engaging captions and hashtags for your images
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
                     onClick={() => navigate("/generate-captions")}
-                    className="w-full"
+                    className="w-full rounded-full"
                   >
                     <Sparkles className="mr-2 h-4 w-4" />
                     Create Captions
@@ -136,19 +136,19 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-card hover:shadow-lg transition-shadow opacity-60">
+              <Card className="shadow-card hover:shadow-xl transition-shadow border-0 rounded-2xl opacity-60">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Video className="h-5 w-5 text-primary" />
-                    Marketing Videos
-                  </CardTitle>
-                  <CardDescription>
+                  <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                    <Video className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">Marketing Videos</CardTitle>
+                  <CardDescription className="text-base">
                     Create stunning marketing videos (Coming Soon)
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
-                    className="w-full"
+                    className="w-full rounded-full"
                     disabled
                   >
                     Coming Soon
@@ -160,12 +160,12 @@ const Dashboard = () => {
 
           {/* Your Creations Section */}
           <div>
-            <h2 className="text-2xl font-bold mb-4">Your Creations</h2>
+            <h2 className="text-3xl font-bold mb-6">Your Creations</h2>
             <Tabs defaultValue="images" className="w-full">
-              <TabsList className="grid w-full md:w-auto grid-cols-3">
-                <TabsTrigger value="images">Images</TabsTrigger>
-                <TabsTrigger value="captions">Captions</TabsTrigger>
-                <TabsTrigger value="videos">Videos</TabsTrigger>
+              <TabsList className="grid w-full md:w-auto grid-cols-3 rounded-full">
+                <TabsTrigger value="images" className="rounded-full">Images</TabsTrigger>
+                <TabsTrigger value="captions" className="rounded-full">Captions</TabsTrigger>
+                <TabsTrigger value="videos" className="rounded-full">Videos</TabsTrigger>
               </TabsList>
               
               <TabsContent value="images" className="mt-6">

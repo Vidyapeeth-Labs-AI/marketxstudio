@@ -306,10 +306,10 @@ const GenerateCaptions = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-background sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+          <Button variant="ghost" onClick={() => navigate("/dashboard")} className="rounded-full">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
@@ -319,13 +319,13 @@ const GenerateCaptions = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-8">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Generate Social Media Captions</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-4xl font-bold mb-2">Generate Social Media Captions</h1>
+            <p className="text-muted-foreground text-lg">
               Import images and generate context-aware captions with relevant hashtags
             </p>
           </div>
 
-          <Card>
+          <Card className="border-0 rounded-2xl shadow-card">
             <CardHeader>
               <CardTitle>Import Images</CardTitle>
               <CardDescription>
@@ -337,7 +337,7 @@ const GenerateCaptions = () => {
                 <div className="text-center py-8 text-muted-foreground">
                   <ImageIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p className="mb-4">No images found. Generate some marketing images first!</p>
-                  <Button onClick={() => navigate("/generate")}>
+                  <Button onClick={() => navigate("/generate")} className="rounded-full">
                     Generate Images
                   </Button>
                 </div>
@@ -345,7 +345,7 @@ const GenerateCaptions = () => {
                 <div className="flex flex-col items-center gap-4">
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button size="lg" className="w-full sm:w-auto">
+                      <Button size="lg" className="w-full sm:w-auto rounded-full">
                         <Upload className="h-5 w-5 mr-2" />
                         Import Images ({images.length} available)
                       </Button>
@@ -389,12 +389,14 @@ const GenerateCaptions = () => {
                             setSelectedImages([]);
                             setIsDialogOpen(false);
                           }}
+                          className="rounded-full"
                         >
                           Cancel
                         </Button>
                         <Button
                           onClick={handleGenerate}
                           disabled={generating || selectedImages.length === 0}
+                          className="rounded-full"
                         >
                           {generating ? (
                             <>
@@ -439,7 +441,7 @@ const GenerateCaptions = () => {
                   const isCopied = copiedCaptionIds.has(captionId);
                   
                   return (
-                    <Card key={captionId} className="shadow-card">
+                    <Card key={captionId} className="shadow-card border-0 rounded-2xl">
                       <CardHeader>
                         <div className="flex items-start gap-3">
                           <img

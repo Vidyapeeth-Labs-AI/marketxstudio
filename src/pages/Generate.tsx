@@ -166,10 +166,10 @@ const Generate = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-background sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")} disabled={generating}>
+          <Button variant="ghost" onClick={() => navigate("/dashboard")} disabled={generating} className="rounded-full">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Button>
@@ -179,7 +179,7 @@ const Generate = () => {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-2">Generate Marketing Images</h1>
-          <p className="text-muted-foreground">Follow the steps below to create stunning marketing visuals</p>
+          <p className="text-muted-foreground text-lg">Follow the steps below to create stunning marketing visuals</p>
         </div>
 
         {generating && (
@@ -190,26 +190,26 @@ const Generate = () => {
         )}
 
         <div className="space-y-6">
-          <Card className="shadow-card">
+          <Card className="shadow-card border-0 rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">1</span>
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">1</span>
                 Select Business Category
               </CardTitle>
-              <CardDescription>Choose the category that best fits your product</CardDescription>
+              <CardDescription className="text-base">Choose the category that best fits your product</CardDescription>
             </CardHeader>
             <CardContent>
               <CategorySelect value={selectedCategory} onChange={setSelectedCategory} />
             </CardContent>
           </Card>
 
-          <Card className="shadow-card">
+          <Card className="shadow-card border-0 rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">2</span>
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">2</span>
                 Upload Product Image
               </CardTitle>
-              <CardDescription>Upload a clear image of your product</CardDescription>
+              <CardDescription className="text-base">Upload a clear image of your product</CardDescription>
             </CardHeader>
             <CardContent>
               <ImageUpload onImageSelect={setUploadedImage} />
@@ -217,13 +217,13 @@ const Generate = () => {
           </Card>
 
           {requiresModel && (
-            <Card className="shadow-card">
+            <Card className="shadow-card border-0 rounded-2xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">3</span>
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">3</span>
                   Choose Model Type
                 </CardTitle>
-                <CardDescription>Select the type of model for your marketing image</CardDescription>
+                <CardDescription className="text-base">Select the type of model for your marketing image</CardDescription>
               </CardHeader>
               <CardContent>
                 <ModelSelect value={selectedModel} onChange={setSelectedModel} />
@@ -236,7 +236,7 @@ const Generate = () => {
               onClick={handleGenerate}
               disabled={!selectedCategory || !uploadedImage || (requiresModel && !selectedModel) || credits <= 0 || generating}
               size="lg"
-              className="w-full sm:w-auto px-8"
+              className="w-full sm:w-auto px-8 rounded-full"
             >
               {generating ? (
                 <>

@@ -89,11 +89,11 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
-      <Card className="w-full max-w-md shadow-card">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-md shadow-card border-0 rounded-2xl">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl">AI Marketing Studio</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-3xl font-bold">MarketX Studio</CardTitle>
+          <CardDescription className="text-base">
             {isLogin ? "Sign in to your account" : "Create a new account"}
           </CardDescription>
         </CardHeader>
@@ -109,6 +109,7 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
                 required
+                className="rounded-xl"
               />
             </div>
             <div className="space-y-2">
@@ -122,9 +123,10 @@ const Auth = () => {
                 disabled={loading}
                 required
                 minLength={6}
+                className="rounded-xl"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full rounded-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLogin ? "Sign In" : "Sign Up"}
             </Button>
